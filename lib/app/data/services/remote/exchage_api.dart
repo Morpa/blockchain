@@ -31,7 +31,9 @@ class ExchangeAPI {
             ),
           ),
         );
-        return Right(cryptos.toList());
+        return Either.right(
+          cryptos.toList(),
+        );
       }
 
       if (response.statusCode == 400) {
@@ -53,7 +55,7 @@ class ExchangeAPI {
         failure = HttpRequestFailure.local;
       }
 
-      return Left(failure);
+      return Either.left(failure);
     }
   }
 }

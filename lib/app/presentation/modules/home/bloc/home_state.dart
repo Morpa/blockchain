@@ -6,7 +6,7 @@ part 'home_state.freezed.dart';
 
 @freezed
 class HomeState with _$HomeState {
-  factory HomeState.loading() = HomeStateLoading;
-  factory HomeState.failed() = HomeStateFailed;
-  factory HomeState.loaded(List<Crypto> cryptos) = HomeStateLoaded;
+  factory HomeState.loading() = _Loading;
+  factory HomeState.failed() = _Failed;
+  factory HomeState.loaded(List<Crypto> cryptos) = _Loaded;
 }
