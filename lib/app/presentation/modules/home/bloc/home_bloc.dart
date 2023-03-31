@@ -1,7 +1,7 @@
 import 'package:flutter/widgets.dart';
 
 import '../../../../domain/repositories/exchange_repository.dart';
-import '../../../../domain/results/get_prices/get_prices_result.dart';
+
 import 'home_state.dart';
 
 class HomeBloc extends ChangeNotifier {
@@ -32,12 +32,10 @@ class HomeBloc extends ChangeNotifier {
       ],
     );
 
-    //is serialize a implicity cast
-    if (result is GetPricesSuccess) {
-      _state = HomeStateLoaded(result.cryptos);
-    } else {
-      _state = HomeStateFailed();
-    }
+    _state = result.when(
+        left: (_) => _state = HomeStateFailed(),
+        right: (cryptos) => HomeStateLoaded(cryptos));
+
     notifyListeners();
   }
 }

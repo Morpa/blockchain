@@ -3,16 +3,17 @@ import 'dart:io';
 
 import 'package:http/http.dart';
 
+import '../../../domain/either/either.dart';
 import '../../../domain/failures/http_request_failure.dart';
 import '../../../domain/models/crypto/crypto.dart';
-import '../../../domain/results/get_prices/get_prices_result.dart';
+import '../../../domain/repositories/exchange_repository.dart';
 
 class ExchangeAPI {
   final Client _client;
 
   ExchangeAPI(this._client);
 
-  Future<GetPricesResult> getPrices(List<String> ids) async {
+  GetPriceFuture getPrices(List<String> ids) async {
     try {
       final response = await _client.get(
         Uri.parse('https://api.coincap.io/v2/assets?ids=${ids.join(',')}'),
@@ -30,7 +31,7 @@ class ExchangeAPI {
             ),
           ),
         );
-        return GetPricesSuccess(cryptos.toList());
+        return Right(cryptos.toList());
       }
 
       if (response.statusCode == 400) {
@@ -52,7 +53,7 @@ class ExchangeAPI {
         failure = HttpRequestFailure.local;
       }
 
-      return GetPricesFailure(failure);
+      return Left(failure);
     }
   }
 }
