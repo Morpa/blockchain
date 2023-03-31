@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../bloc/home_bloc.dart';
-import '../bloc/home_state.dart';
 
 class HomeView extends StatelessWidget {
   const HomeView({super.key});
@@ -16,34 +15,27 @@ class HomeView extends StatelessWidget {
       builder: (context, _) {
         final HomeBloc bloc = context.watch();
 
-        return Scaffold(body: () {
-          final state = bloc.state;
-
-          if (state is HomeStateLoading) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
-          }
-
-          if (state is HomeStateLoaded) {
-            return ListView.builder(
-              itemBuilder: (_, index) {
-                final crypto = state.cryptos[index];
-
-                return ListTile(
-                  title: Text(crypto.id),
-                  subtitle: Text(crypto.symbol),
-                  trailing: Text(crypto.price.toStringAsFixed(2)),
-                );
-              },
-              itemCount: state.cryptos.length,
-            );
-          }
-
-          return const Center(
+        return Scaffold(
+            body: bloc.state.when(
+          loading: () => const Center(
+            child: CircularProgressIndicator(),
+          ),
+          failed: () => const Center(
             child: Text('ERROR'),
-          );
-        }());
+          ),
+          loaded: (cryptos) => ListView.builder(
+            itemBuilder: (_, index) {
+              final crypto = cryptos[index];
+
+              return ListTile(
+                title: Text(crypto.id),
+                subtitle: Text(crypto.symbol),
+                trailing: Text(crypto.price.toStringAsFixed(2)),
+              );
+            },
+            itemCount: cryptos.length,
+          ),
+        ));
       },
     );
   }

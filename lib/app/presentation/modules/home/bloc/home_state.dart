@@ -1,13 +1,12 @@
+import 'package:freezed_annotation/freezed_annotation.dart';
+
 import '../../../../domain/models/crypto/crypto.dart';
 
-abstract class HomeState {}
+part 'home_state.freezed.dart';
 
-class HomeStateLoading extends HomeState {}
-
-class HomeStateFailed extends HomeState {}
-
-class HomeStateLoaded extends HomeState {
-  final List<Crypto> cryptos;
-
-  HomeStateLoaded(this.cryptos);
+@freezed
+class HomeState with _$HomeState {
+  factory HomeState.loading() = HomeStateLoading;
+  factory HomeState.failed() = HomeStateFailed;
+  factory HomeState.loaded(List<Crypto> cryptos) = HomeStateLoaded;
 }
