@@ -36,7 +36,7 @@ class HomeBloc extends ChangeNotifier {
     );
 
     _state = result.when(
-        left: (_) => _state = HomeState.failed(),
+        left: (failure) => _state = HomeState.failed(failure),
         right: (cryptos) => HomeState.loaded(cryptos));
 
     notifyListeners();

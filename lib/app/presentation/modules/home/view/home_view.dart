@@ -20,9 +20,17 @@ class HomeView extends StatelessWidget {
           loading: () => const Center(
             child: CircularProgressIndicator(),
           ),
-          failed: () => const Center(
-            child: Text('ERROR'),
-          ),
+          failed: (failure) {
+            final message = failure.whenOrNull(
+              network: () => 'Check your internet connection',
+              server: () => 'Server error',
+            );
+
+            Center(
+              child: Text(message ?? 'Internal error'),
+            );
+            return null;
+          },
           loaded: (cryptos) => ListView.builder(
             itemBuilder: (_, index) {
               final crypto = cryptos[index];
