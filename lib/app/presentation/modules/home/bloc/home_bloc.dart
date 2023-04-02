@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/widgets.dart';
 
 import '../../../../domain/repositories/exchange_repository.dart';
@@ -13,6 +15,7 @@ class HomeBloc extends ChangeNotifier {
 
   final ExchangeRepository exchangeRepository;
   final WsRepository wsRepository;
+  StreamSubscription? _subscription;
 
   HomeState _state = const HomeState.loading();
 
@@ -21,9 +24,11 @@ class HomeBloc extends ChangeNotifier {
   final _ids = [
     'bitcoin',
     'ethereum',
+    'tether',
+    'binance-coin',
     'monero',
     'litecoin',
-    ' usd-coin',
+    'usd-coin',
     'dogecoin',
   ];
 
@@ -41,7 +46,7 @@ class HomeBloc extends ChangeNotifier {
     _state = result.when(
         left: (failure) => _state = HomeState.failed(failure),
         right: (cryptos) {
-          startPriceListening();
+          startPricesListening();
 
           return HomeState.loaded(cryptos: cryptos);
         });
@@ -49,20 +54,57 @@ class HomeBloc extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<bool> startPriceListening() async {
+  Future<bool> startPricesListening() async {
     final connected = await wsRepository.connect(_ids);
 
     state.mapOrNull(
       loaded: (state) {
+        if (connected) {
+          _onPricesChanged();
+        }
         _state = state.copyWith(
           wsStatus:
               connected ? const WsStatus.connected() : const WsStatus.failed(),
         );
-
         notifyListeners();
       },
     );
 
     return connected;
+  }
+
+  void _onPricesChanged() {
+    _subscription?.cancel();
+    _subscription = wsRepository.onPricesChanged.listen(
+      (changes) {
+        state.mapOrNull(
+          loaded: (state) {
+            final keys = changes.keys;
+
+            _state = state.copyWith(
+              cryptos: [
+                ...state.cryptos.map(
+                  (crypto) {
+                    if (keys.contains(crypto.id)) {
+                      return crypto.copyWith(
+                        price: changes[crypto.id]!,
+                      );
+                    }
+                    return crypto;
+                  },
+                ),
+              ],
+            );
+            notifyListeners();
+          },
+        );
+      },
+    );
+  }
+
+  @override
+  void dispose() {
+    _subscription?.cancel();
+    super.dispose();
   }
 }
