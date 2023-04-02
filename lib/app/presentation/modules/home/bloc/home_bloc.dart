@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/widgets.dart';
 
+import '../../../../domain/models/ws_status/ws_status.dart';
 import '../../../../domain/repositories/exchange_repository.dart';
 
 import '../../../../domain/repositories/ws_repository.dart';
@@ -15,7 +16,7 @@ class HomeBloc extends ChangeNotifier {
 
   final ExchangeRepository exchangeRepository;
   final WsRepository wsRepository;
-  StreamSubscription? _subscription;
+  StreamSubscription? _pricesSubscription, _wsSubscription;
 
   HomeState _state = const HomeState.loading();
 
@@ -74,8 +75,9 @@ class HomeBloc extends ChangeNotifier {
   }
 
   void _onPricesChanged() {
-    _subscription?.cancel();
-    _subscription = wsRepository.onPricesChanged.listen(
+    _pricesSubscription?.cancel();
+    _wsSubscription?.cancel();
+    _pricesSubscription = wsRepository.onPricesChanged.listen(
       (changes) {
         state.mapOrNull(
           loaded: (state) {
@@ -100,11 +102,24 @@ class HomeBloc extends ChangeNotifier {
         );
       },
     );
+    _wsSubscription = wsRepository.onStatusChanged.listen(
+      (status) {
+        state.mapOrNull(
+          loaded: (state) {
+            _state = state.copyWith(
+              wsStatus: status,
+            );
+            notifyListeners();
+          },
+        );
+      },
+    );
   }
 
   @override
   void dispose() {
-    _subscription?.cancel();
+    _pricesSubscription?.cancel();
+    _wsSubscription?.cancel();
     super.dispose();
   }
 }
